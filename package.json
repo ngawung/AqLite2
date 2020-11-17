@@ -4,6 +4,7 @@
   "description": "A simple fork of AqLite to add some small features",
   "main": "main.js",
   "scripts": {
+  	"dump": "./cetera/dump_projector ./cetera/'Cetera R10.3 Flash Projector.exe' ./cetera/cetera.swf",
     "start": "electron .",
     "pack": "electron-builder --dir",
     "dist": "electron-builder"

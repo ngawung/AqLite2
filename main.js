@@ -4,9 +4,9 @@ const flashTrust = require('nw-flash-trust');
 const electronLocalshortcut = require('electron-localshortcut');
 
 // Important Variables
-const appName      = 'aqlite2';
+const appName      = 'cetera';
 const iconPath     = path.join(__dirname, 'Icon', 'Icon.png');
-const aqlitePath   = 'file://'+ path.join(__dirname, 'aqlite.swf');
+const aqlitePath   = 'file://'+ path.join(__dirname, 'cetera/cetera.swf');
 
 const wikiReleases = 'http://aqwwiki.wikidot.com/new-releases';
 const accountAq    = 'https://account.aq.com/'
@@ -20,8 +20,8 @@ let aqliteWindowArray = []; // Store the alt windows
 // New page function
 function newBrowserWindow(new_path){
     const newWin = new BrowserWindow({
-        'width': 800,
-        'height': 600,
+        'width': 960,
+        'height': 550,
         'webPreferences': {
             'plugins': true,
             'nodeIntegration': false,
@@ -38,7 +38,7 @@ function newBrowserWindow(new_path){
     if (new_path == aqlitePath) {
         // Its alt window, Put the aqlite title...
         altPages++;
-        newWin.setTitle("AQLite (Window " + altPages + ")");
+        newWin.setTitle("Cetera (Window " + altPages + ")");
         // ...and add it in the arrays
         aqliteWindowArray.push(newWin);
         
@@ -86,7 +86,7 @@ function showHelpMessage(){
             'Alt + D - AQW Design notes\n' +
             'Alt + A - Account page\n' +
             'Alt + C - Character lookup. You can also just use the in-game lookup.\n' +
-            'Alt + N - Opens a new Aqlite instance.\n' +
+            'Alt + N - Opens a new Cetera instance.\n' +
             'F9 - About ' + appName + '.\n' +
             'F11 - Toggles Fullscreen\n' +
             'Shift + F5 - Clears all game cache, some cookies and refresh the window(can fix some bugs in game).\n\n' +
@@ -100,8 +100,8 @@ function showAboutMessage(){
     const { dialog } = require('electron')
     const dialog_options = {
         buttons: ['Ok'],
-        title: 'About AqLite2 version:',
-        message: "AqLite2 v"+app.getVersion()+" would not be possible without the help of:",
+        title: 'About Cetera version:',
+        message: "Cetera would not be possible without the help of:",
         detail: '133spider (github)\n' +
          'CaioFViana (github)\n' +
          'aquaspy (github)\n' +
@@ -136,13 +136,13 @@ const flashPath = path.join(app.getPath('userData'), 'Pepper Data', 'Shockwave F
 const trustManager = flashTrust.initSync(appName, flashPath);
 
 trustManager.empty();
-trustManager.add(path.resolve(__dirname, 'aqlite.swf'));
+trustManager.add(path.resolve(__dirname, 'cetera/cetera.swf'));
 
 function createWindow () {
   // Create the browser window.
   let win = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 960,
+    height: 550,
     icon: iconPath,
     title: appName,
     webPreferences: {
@@ -157,7 +157,7 @@ function createWindow () {
   const ses = win.webContents.session //creating session for cache cleaning later.
 
   win.loadURL(aqlitePath);
-  win.setTitle("AQLite");
+  win.setTitle("Cetera Bot");
   
   // KeyBindings ---
   var addKeybind = function(keybind, func){
