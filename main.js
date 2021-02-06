@@ -1,12 +1,14 @@
 const { app, BrowserWindow} = require('electron')
-const path = require('path')
-const flashTrust = require('nw-flash-trust');
+const path                  = require('path')
+const flashTrust            = require('nw-flash-trust');
 const electronLocalshortcut = require('electron-localshortcut');
 
 // Important Variables
 const appName      = 'cetera';
 const iconPath     = path.join(__dirname, 'Icon', 'Icon.png');
-const aqlitePath   = 'file://'+ path.join(__dirname, 'cetera/cetera.swf');
+const ceteraPath   = 'file://'+ path.join(__dirname, 'cetera/cetera.swf');
+const aqlitePath   = 'file://'+ path.join(__dirname, 'cetera/aqlite.swf');
+const pagesPath    = 'file://'+ path.join(__dirname, 'pages', 'pages.html');
 
 const wikiReleases = 'http://aqwwiki.wikidot.com/new-releases';
 const accountAq    = 'https://account.aq.com/'
@@ -15,7 +17,7 @@ const charLookup   = 'https://www.aq.com/character.asp'; // Maybe ask nickname i
 
 let altPages = 1; // Total Aqlite windows opened
 
-let aqliteWindowArray = []; // Store the alt windows
+let ceteraWindowArray = []; // Store the alt windows
 
 // New page function
 function newBrowserWindow(new_path){
@@ -25,6 +27,7 @@ function newBrowserWindow(new_path){
         'webPreferences': {
             'plugins': true,
             'nodeIntegration': false,
+            'webviewTag': false,
             'javascript': true,
             'contextIsolation': true,
             'enableRemoteModule': false,
@@ -34,23 +37,58 @@ function newBrowserWindow(new_path){
     });
     newWin.setMenuBarVisibility(false) //Remove default electron menu
     newWin.loadURL(new_path);
-    
-    if (new_path == aqlitePath) {
+
+    if (new_path == ceteraPath) {
         // Its alt window, Put the aqlite title...
         altPages++;
         newWin.setTitle("Cetera (Window " + altPages + ")");
         // ...and add it in the arrays
-        aqliteWindowArray.push(newWin);
-        
+        ceteraWindowArray.push(newWin);
+
         newWin.on('closed', () => {
             // Remove it from array! Will cause problems if not!
-            for( var i = 0; i < aqliteWindowArray.length; i++){ 
-                if ( aqliteWindowArray[i] === newWin) { 
-                    aqliteWindowArray.splice(i, 1); 
+            for( var i = 0; i < ceteraWindowArray.length; i++){
+                if ( ceteraWindowArray[i] === newWin) {
+                    ceteraWindowArray.splice(i, 1);
                 }
             }
         });
     }
+    else if (new_path == aqlitePath) {
+        // Its alt window, but for vanilla.
+        altPages++;
+        newWin.setTitle("AqLite (Window " + altPages + ")");
+        // ...and add it in the arrays
+        ceteraWindowArray.push(newWin);
+
+        newWin.on('closed', () => {
+            // Remove it from array! Will cause problems if not!
+            for( var i = 0; i < ceteraWindowArray.length; i++){
+                if ( ceteraWindowArray[i] === newWin) {
+                    ceteraWindowArray.splice(i, 1);
+                }
+            }
+        });
+    }
+}
+
+function newTabbedWindow(){
+    const newWin = new BrowserWindow({
+        'width': 960,
+        'height': 550,
+        'webPreferences': {
+            'plugins': true,
+            'nodeIntegration': false,
+            'webviewTag': true,
+            'javascript': true,
+            'contextIsolation': true,
+            'enableRemoteModule': false,
+            'nodeIntegrationInWorker': true //maybe better performance for more instances in future... Neends testing.
+        },
+        'icon': iconPath
+    });
+    newWin.setMenuBarVisibility(false) //Remove default electron menu
+    newWin.loadURL(pagesPath);
 }
 
 function executeOnFocused(mainWin, funcForWindow){
@@ -59,9 +97,9 @@ function executeOnFocused(mainWin, funcForWindow){
         return;
     }
     else {
-        for (var i = 0; i < aqliteWindowArray.length; i++){
-            if (aqliteWindowArray[i].isFocused()) 
-                funcForWindow(aqliteWindowArray[i]);
+        for (var i = 0; i < ceteraWindowArray.length; i++){
+            if (ceteraWindowArray[i].isFocused())
+                funcForWindow(ceteraWindowArray[i]);
         }
     }
 }
@@ -69,8 +107,8 @@ function executeOnFocused(mainWin, funcForWindow){
 // Test if the window focused is a Aqlite window (more like if
 //  one of the aqlite windows is focused) so it can use keybinds
 function testForFocus(){
-    for (var i = 0; i < aqliteWindowArray.length; i++){
-        if (aqliteWindowArray[i].isFocused()) return true;
+    for (var i = 0; i < ceteraWindowArray.length; i++){
+        if (ceteraWindowArray[i].isFocused()) return true;
     }
     return false;
 }
@@ -85,11 +123,13 @@ function showHelpMessage(){
         detail: 'Alt + W - AQW Wiki\n' +
             'Alt + D - AQW Design notes\n' +
             'Alt + A - Account page\n' +
-            'Alt + C - Character lookup. You can also just use the in-game lookup.\n' +
             'Alt + N - Opens a new Cetera instance.\n' +
+            //'Alt + P - Character (Player) lookup. You can also just use the in-game lookup.\n' +
+            'Alt + Q - Opens a new AqLite instance\n' +
+            'Alt + Y - Opens a new Window with the usefull browser pages with tabs, being grouped up so doesnt spam windows. Uses more memory (300mb) tho.\n' +
             'F9 - About ' + appName + '.\n' +
             'F11 - Toggles Fullscreen\n' +
-            'Shift + F5 - Clears all game cache, some cookies and refresh the window(can fix some bugs in game).\n\n' +
+            'Shift + F5 - Clears all game cache, some cookies and refresh the window (can fix some bugs in game).\n\n' +
             'Note: F1, or Cmd/Ctrl + H, or Alt + H Shows this message.',
     };
     const response = dialog.showMessageBox(null,dialog_options);
@@ -110,7 +150,7 @@ function showAboutMessage(){
          'Adobe Flash Player (adobe.com)\n' +
          'YOU! (Yes, You! Thanks for supporting us!)\n\n' +
         'Note: This is NOT an official Artix product. Artix Entertainment does not recommends it by any means. You are at your own risk using it.\n\n' +
-        'You can give your opinion, contribute and follow the project here: https://github.com/aquaspy/AqLite2',
+        'You can give your opinion, contribute and follow the project here: https://github.com/aquaspy/AquaStar',
     };
     const response = dialog.showMessageBox(null,dialog_options);
 }
@@ -118,18 +158,33 @@ function showAboutMessage(){
 let pluginName
 switch (process.platform) {
   case 'win32':
-    pluginName = 'pepflashplayer.dll'
+    if (process.arch == "x86"){
+      pluginName = 'pepflashplayer32bits.dll'
+    }
+    else {
+      pluginName = 'pepflashplayer.dll'
+    }
     break
   case 'darwin':
+    // In testing...
     pluginName = 'PepperFlashPlayer.plugin'
     break
   case 'linux':
-    pluginName = 'libpepflashplayer.so'
+    // Can be arm too...
+     if (process.arch == "x86"){
+      pluginName = 'libpepflashplayer32bits.so'
+    }
+    else if (process.arch == "arm") {
+      pluginName = 'libpepflashplayerARM.so'
+    }
+    else {
+        pluginName = 'libpepflashplayer.so'
+    }
     break
 }
 
 app.commandLine.appendSwitch('ppapi-flash-path', path.join(__dirname,"FlashPlayer", pluginName))
-app.commandLine.appendSwitch('ppapi-flash-version', '32.0.0.433');
+app.commandLine.appendSwitch('ppapi-flash-version', '32.0.0.344');
 
 
 const flashPath = path.join(app.getPath('userData'), 'Pepper Data', 'Shockwave Flash', 'WritableRoot');
@@ -137,6 +192,7 @@ const trustManager = flashTrust.initSync(appName, flashPath);
 
 trustManager.empty();
 trustManager.add(path.resolve(__dirname, 'cetera/cetera.swf'));
+trustManager.add(path.resolve(__dirname, 'cetera/aqlite.swf'));
 
 function createWindow () {
   // Create the browser window.
@@ -147,6 +203,7 @@ function createWindow () {
     title: appName,
     webPreferences: {
       nodeIntegration: false,
+      webviewTag: false,
       plugins: true,
       javascript: true,
       contextIsolation: true,
@@ -156,7 +213,7 @@ function createWindow () {
   })
   const ses = win.webContents.session //creating session for cache cleaning later.
 
-  win.loadURL(aqlitePath);
+  win.loadURL(ceteraPath);
   win.setTitle("Cetera Bot");
   
   // KeyBindings ---
@@ -170,10 +227,13 @@ function createWindow () {
   addKeybind('Alt+W', ()=>{newBrowserWindow(wikiReleases)});
   addKeybind('Alt+D', ()=>{newBrowserWindow(designNotes)});
   addKeybind('Alt+A', ()=>{newBrowserWindow(accountAq)});
-  addKeybind('Alt+C', ()=>{newBrowserWindow(charLookup)});
+  //addKeybind('Alt+P', ()=>{newBrowserWindow(charLookup)});
 
-  // Open new Aqlite window (usefull for alts)
-  addKeybind('Alt+N',  ()=>{newBrowserWindow(aqlitePath)});
+  addKeybind('Alt+Y',  ()=>{newTabbedWindow()});
+
+  // Open new Cetera window (usefull for alts)
+  addKeybind('Alt+N',  ()=>{newBrowserWindow(ceteraPath)});
+  addKeybind('Alt+Q',  ()=>{newBrowserWindow(aqlitePath)});
 
   // Show help message
   addKeybind('Alt+H',              ()=>{showHelpMessage()});
@@ -181,10 +241,10 @@ function createWindow () {
   addKeybind('CommandOrControl+H', ()=>{showHelpMessage()});
   // Show About
   addKeybind('F9',  ()=>{showAboutMessage()});
-  
+
   // Toggle Fullscreen
   var toggle = function(focusedWin){
-    focusedWin.setFullScreen(!focusedWin.isFullScreen()); 
+    focusedWin.setFullScreen(!focusedWin.isFullScreen());
     focusedWin.setMenuBarVisibility(false)
   };
   addKeybind('F11', ()=>{executeOnFocused(win,toggle)});
